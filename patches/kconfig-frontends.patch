@@ -1,0 +1,37 @@
+diff --git a/frontends/mconf/mconf.c b/frontends/mconf/mconf.c
+index 566288a..4a59a0c 100644
+--- a/frontends/mconf/mconf.c
++++ b/frontends/mconf/mconf.c
+@@ -903,10 +903,6 @@ static int handle_exit(void)
+ 		}
+ 		/* fall through */
+ 	case -1:
+-		printf(_("\n\n"
+-			 "*** End of the configuration.\n"
+-			 "*** Execute 'make' to start the build or try 'make help'."
+-			 "\n\n"));
+ 		res = 0;
+ 		break;
+ 	default:
+@@ -914,7 +910,7 @@ static int handle_exit(void)
+ 				  "Your configuration changes were NOT saved."
+ 				  "\n\n"));
+ 		if (res != KEY_ESC)
+-			res = 0;
++			res = 1;
+ 	}
+ 
+ 	return res;
+diff --git a/libs/parser/confdata.c b/libs/parser/confdata.c
+index 13ddf11..e4d180d 100644
+--- a/libs/parser/confdata.c
++++ b/libs/parser/confdata.c
+@@ -820,7 +820,7 @@ next:
+ 			return 1;
+ 	}
+ 
+-	conf_message(_("configuration written to %s"), newname);
++	conf_message(_("configuration written to %s\n"), newname);
+ 
+ 	sym_set_change_count(0);
+ 

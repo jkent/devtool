@@ -1,0 +1,50 @@
+menu "Build"
+
+choice
+	prompt "Architecture"
+config ARCH_ARM
+	bool "ARM"
+endchoice
+
+choice
+	prompt "Platform"
+config PLAT_POLLUX
+	bool "LF1000/POLLUX"
+	depends on ARCH_ARM
+endchoice
+
+choice
+	prompt "Device"
+config DEVICE_DIDJ
+	bool "LeapFrog Didj"
+	depends on PLAT_POLLUX
+config DEVICE_NC600
+	bool "NC600"
+	depends on PLAT_POLLUX
+config DEVICE_A732
+	bool "Augen e-Go A732"
+	depends on PLAT_POLLUX
+endchoice
+
+choice
+	prompt "Toolchain"
+	default TOOLCHAIN_CODESOURCERY_201203
+config TOOLCHAIN_CODESOURCERY_201203
+	bool "CodeSourcery 2012.03" if ARCH_ARM
+config TOOLCHAIN_CODESOURCERY_201209
+	bool "CodeSourcery 2012.09" if ARCH_ARM
+config TOOLCHAIN_USER_DEFINED
+	bool "User defined"
+endchoice
+
+config TOOLCHAIN_PREFIX
+	string "Toolchain prefix" if TOOLCHAIN_USER_DEFINED
+	default "arm-none-eabi-" if TOOLCHAIN_CODESOURCERY_201203
+	default "arm-none-eabi-" if TOOLCHAIN_CODESOURCERY_201209
+	default ""
+
+config TOOLCHAIN_DIRECTORY
+	string "Toolchain directory" if TOOLCHAIN_USER_DEFINED
+	default "custom"
+
+endmenu
