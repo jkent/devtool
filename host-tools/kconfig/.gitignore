@@ -1,0 +1,8 @@
+*.a
+*.o
+conf
+mconf
+tweak
+hconf.c
+lconf.c
+yconf.c

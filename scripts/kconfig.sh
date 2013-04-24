@@ -5,38 +5,30 @@ if [ -z "${ENV}" ]; then
   exit 1;
 fi
 
-kconfig_path="${ENV}/tools/kconfig-frontends"
+kconfig_path="${ENV}/host-tools/kconfig"
 
-if [ ! -x "${kconfig_path}/bin/kconfig-conf" ]; then
+if [ ! -x "${kconfig_path}/conf" ]; then
   task_begin "Setting up kconfig-frontends"
-  if [ ! -d "${ENV}/build/kconfig-frontends" ]; then
-    try mkdir -p "${ENV}/build"
-    try cd build
-    try git clone git://ymorin.is-a-geek.org/kconfig-frontends
-  fi
-  try cd "${ENV}/build/kconfig-frontends"
-  try git clean -dxf
-  try git reset --hard HEAD
-  try git pull
-  try patch -p1 < "${ENV}/patches/kconfig-frontends.patch"
-  try ./bootstrap
-  try ./configure --prefix "${kconfig_path}"
+  try cd "${kconfig_path}"
+  try make clean
   try make
-  try make install
   task_end
 fi
 
-export CFG=${ENV}/.config
-export PATH=${kconfig_path}/bin:${ENV}/scripts:${PATH}
+export CFG="${ENV}/.config"
+export PATH="${ENV}/scripts:${PATH}"
 
-kconfig() {
-  kconfig-gconf "$1" || kconfig-mconf "$1"
-  return $?
+mconf() {
+  "$kconfig_path/mconf" "$@"
+}
+
+tweak() {
+  "$kconfig_path/tweak" "$@"
 }
 
 value() {
   if [ -f "${CFG}" ]; then
-    kconfig-tweak --file "${CFG}" -s "$1"
+    tweak --file "${CFG}" -s "$1"
   fi
 }
 
@@ -45,7 +37,7 @@ selected() {
     return 1
   fi
 
-  if [ `kconfig-tweak --file "${CFG}" -s "$1"` != y ]; then
+  if [ `tweak --file "${CFG}" -s "$1"` != y ]; then
     return 1
   fi
 }

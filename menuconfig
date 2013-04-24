@@ -6,8 +6,8 @@ source "${ENV}/scripts/log.sh"
 source "${ENV}/scripts/kconfig.sh"
 
 cd ${ENV}
-kconfig-mconf "${ENV}/Kconfig"
+mconf "${ENV}/toplevel.cfg"
 
 if [ -f ${CFG} ]; then
-  toolchain setup
+  ${ENV}/scripts/toolchain setup
 fi

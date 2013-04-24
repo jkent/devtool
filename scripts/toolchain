@@ -52,27 +52,28 @@ case $1 in
     fi
 
     if [ ! -f "${tool_tar}" -a -z "${tool_url}" ]; then
-      echo "Please put {$tool_tar} in ${ENV}/tools to continue" >&2
+      echo "Please put ${tool_tar} in ${ENV}/tarballs to continue" >&2
       exit 1
     fi
 
-    task_begin "Setting up ${tool_name}"
-
-    try mkdir -p "${ENV}/tools"
-    try cd "${ENV}/tools"
-
-    if [ ! -f "${tool_tar}" ]; then
-      try wget "${tool_url}/${tool_tar}"
+    if [ ! -f "${ENV}/tarballs/${tool_tar}" ]; then
+      mkdir -p "${ENV}/tarballs"
+      download "${tool_name}" "${tool_url}/${tool_tar}" "${ENV}/tarballs/${tool_tar}"
     fi
 
     if [ ! -z "${tool_md5}" ]; then
-      md5=`md5sum "${tool_tar}" | cut -d ' ' -f 1`
+      task_begin "Hash checking ${tool_name}"
+      md5=`md5sum "${ENV}/tarballs/${tool_tar}" | cut -d ' ' -f 1`
       if [ "${md5}" != "${tool_md5}" ]; then
-        fail "MD5 does not match for ${toolchain_tar}"
+        fail "MD5 does not match for ${tool_tar}"
       fi
+      task_end
     fi
 
-    try tar xaf "${tool_tar}" || exit 1
+    task_begin "Extracting ${tool_name}"
+    try mkdir -p "${ENV}/tools"
+    try cd "${ENV}/tools"
+    try tar xaf "${ENV}/tarballs/${tool_tar}" || exit 1
 
     if [ ! -x "${gcc}" ]; then
       fail "Something went wrong... please report this issue"

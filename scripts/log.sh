@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z "${ENV}" ]; then
   echo "ENV not set!"
@@ -34,5 +34,13 @@ task_fail() {
 try() {
   echo "%" "$@" >> ${LOG}
   "$@" >> ${LOG} 2>&1 || task_fail
+}
+
+download() {
+  task_begin "Downloading $1"
+  echo "%" "wget --progress=dot \"$2\" -O \"$3\"" >> ${LOG}
+  wget --progress=dot "$2" -O "$3" 2>&1 | grep --line-buffered "%" | \
+    sed -u -e "s,\.,,g" | awk '{printf("%-4s\b\b\b\b", $2)}' >&2 || task_fail
+  task_end
 }
 
