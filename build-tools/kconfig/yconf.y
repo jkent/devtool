@@ -102,7 +102,7 @@ static struct menu *current_menu, *current_entry;
 %%
 input: nl start | start;
 
-start: mainmenu_stmt stmt_list | stmt_list;
+start: stmt_list;
 
 stmt_list:
 	  /* empty */
@@ -127,6 +127,7 @@ common_stmt:
 	| if_stmt
 	| comment_stmt
 	| config_stmt
+	| mainmenu_stmt
 	| menuconfig_stmt
 	| source_stmt
 ;
@@ -343,7 +344,7 @@ if_block:
 
 mainmenu_stmt: T_MAINMENU prompt nl
 {
-	menu_add_prompt(P_MENU, $2, NULL);
+	rootmenu.prompt->text = $2;
 };
 
 /* menu entry */

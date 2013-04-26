@@ -1,31 +1,33 @@
 choice
-	prompt "Target Architecture"
+	prompt "Target architecture"
 	default ARCH_ARM
 config ARCH_ARM
 	bool "ARM"
 endchoice
 
 if ARCH_ARM
-source "$_DT/arch/arm.cfg"
+source "$_DT/configs/arch-arm.dt"
 endif
 
 choice
 	prompt "Toolchain"
 	default TOOLCHAIN_CODESOURCERY_201203
 config TOOLCHAIN_CODESOURCERY_201203
-	bool "CodeSourcery 2012.03" if ARCH_ARM
+	depends on ARCH_ARM
+	bool "CodeSourcery 2012.03"
 config TOOLCHAIN_CODESOURCERY_201209
-	bool "CodeSourcery 2012.09" if ARCH_ARM
+	depends on ARCH_ARM
+	bool "CodeSourcery 2012.09"
 config TOOLCHAIN_USER_DEFINED
 	bool "User defined"
 endchoice
+
+config TOOLCHAIN_PATH
+        depends on TOOLCHAIN_USER_DEFINED
+	string "Toolchain path"
 
 config TOOLCHAIN_PREFIX
 	string "Toolchain prefix" if TOOLCHAIN_USER_DEFINED
 	default "arm-none-eabi-" if TOOLCHAIN_CODESOURCERY_201203
 	default "arm-none-eabi-" if TOOLCHAIN_CODESOURCERY_201209
-	default ""
 
-config TOOLCHAIN_DIRECTORY
-	string "Toolchain directory" if TOOLCHAIN_USER_DEFINED
-	default "custom"

@@ -1,0 +1,12 @@
+mainmenu "Unnamed project"
+
+config _DT
+    string
+    option env="_DT"
+
+config _PROJ
+    string
+    option env="_PROJ"
+
+source "$_PROJ/project.dt"
+

@@ -7,13 +7,13 @@ endchoice
 choice
 	prompt "Device"
 config DEVICE_DIDJ
+	depends on PLAT_POLLUX
 	bool "LeapFrog Didj"
-	depends on PLAT_POLLUX
 config DEVICE_NC600
+	depends on PLAT_POLLUX
 	bool "NC600"
+config DEVICE_EGOA732
 	depends on PLAT_POLLUX
-config DEVICE_A732
 	bool "Augen e-Go A732"
-	depends on PLAT_POLLUX
 endchoice
 

@@ -45,7 +45,7 @@ config_profile() {
   fi
 
   config=$(profile_config $1)
-  mconf "$config" "$_DT/profile.cfg"
+  mconf "$config" "$_DT/configs/profile.dt"
   prepare_toolchain $1
 }
 
@@ -55,6 +55,13 @@ config_project() {
     echo "no project found"
     exit 1
   fi
+
+  if [[ ! -f $project/project.dt ]]; then
+    echo "no configuration for project"
+    exit 1
+  fi
+
+  _PROJ="$project" mconf "$project/.config" "$_DT/configs/project.dt"
 }
 
 if [[ $help ]]; then
