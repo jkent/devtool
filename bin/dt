@@ -1,0 +1,36 @@
+#!/bin/bash
+
+_DT=${_DT-$(cd ${0%/*}/.. && pwd)}
+export _DT
+
+usage() {
+  echo "usage: dt <command> [<args>]"
+  echo
+  echo "command list:"
+  local cmd_files=($_DT/lib/cmd_*)
+  local cmds=("${cmd_files[@]##*/cmd_}" help)
+  readarray -t cmds < <({ for a in "${cmds[@]}"; do echo "$a"; done } | sort)
+  for cmd in "${cmds[@]}"; do
+    echo "   $cmd"
+  done
+  echo
+  echo "See 'dt help <command>' for more information on a specific command."
+  exit 1
+}
+
+cmd=$1
+shift
+
+if [[ -f $_DT/lib/cmd_$cmd ]]; then
+  source $_DT/lib/cmd_$cmd
+elif [[ $cmd == help ]] && [ -n $# ]; then
+  cmd=$1
+  if [[ -f $_DT/lib/cmd_$cmd ]]; then
+    help=1 source $_DT/lib/cmd_$cmd
+  else
+    usage
+  fi
+else
+  usage
+fi
+

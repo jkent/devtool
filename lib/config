@@ -1,0 +1,43 @@
+#!/bin/bash
+
+source $_DT/lib/include
+source $_DT/lib/task
+
+prepare_kconfig() {
+  if [[ -x "$_DT/bin/kconfig-conf" ]]; then
+    return
+  fi
+
+  task_begin "Setting up kconfig tools"
+  try make -C "$_DT/build-tools/kconfig" install
+  task_end
+}
+
+profile_config() {
+  if [[ ! -f $_DT/profiles/$1 ]]; then
+    if [[ ! -f $_DT/profiles/${1}_default ]]; then
+      echo "no configuration for profile" >&2
+      exit 1
+    fi
+    cp "$_DT/profiles/${1}_default" "$_DT/profiles/$1"
+  fi
+  echo -n "$_DT/profiles/$1"
+}
+
+mconf() {
+  prepare_kconfig
+  KCONFIG_CONFIG="$1" "$_DT/bin/kconfig-mconf" "$2"
+}
+
+value() {
+  prepare_kconfig
+  "$_DT/bin/kconfig-tweak" --file "$1" -s "$2"
+}
+
+selected() {
+  prepare_kconfig
+  if [[ $($_DT/bin/kconfig-tweak --file $1 -s $2) != y ]]; then
+    return 1
+  fi
+}
+

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+source $_DT/lib/include
+
+task_begin() {
+  if [[ $DTDEBUG -eq 1 ]]; then
+    echo "### $1" >&2
+  else
+    task_log="### $1"
+    echo -n "$1..." >&2
+  fi
+}
+
+task_end() {
+  if [[ $DTDEBUG -eq 1  ]]; then
+    echo "### Done" >&2
+  else
+    task_log=
+    echo "done" >&2
+  fi
+}
+
+task_fail() {
+  if [[ $DTDEBUG -eq 1  ]]; then
+    echo "### Failed" >&2
+    if [[ -n $1 ]]; then
+      echo $1 >&2
+    fi
+  else
+    echo "fail" >&2
+    task_log="$task_log\n### Failed"
+    if [[ -n $1 ]]; then
+      task_log="$task_log\n$1"
+    fi
+    if [[ -n $task_log ]]; then
+      echo -e "$task_log\n\nPress 'q' to exit less" | less +G
+    fi
+  fi
+  exit 1
+}
+
+try() {
+  local rv
+  if [[ $DTDEBUG -eq 1 ]]; then
+    echo "\$ $@" >&2
+    $@ 2>&1; rv=$?
+  else
+    local output
+    output=$($@ 2>&1); rv=$?
+    task_log="$task_log\n\$ $@"
+    if [[ -n $output ]]; then
+      task_log="$task_log\n$output"
+    fi
+  fi
+  if [ $rv -ne 0 ]; then
+    task_fail
+  fi
+}
+

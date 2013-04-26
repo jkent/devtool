@@ -1,0 +1,92 @@
+#!/bin/bash
+
+source $_DT/lib/include
+source $_DT/lib/config
+source $_DT/lib/util
+
+declare -A toolchain
+
+get_toolchain() {
+  local config
+  config=$(profile_config "$1")
+
+  toolchain[prefix]=$(value $config TOOLCHAIN_PREFIX)
+  if selected "$config" TOOLCHAIN_USER_DEFINED; then
+    toolchain[name]="Custom toolchain"
+    toolchain[dir]=$(value $config TOOLCHAIN_DIRECTORY)
+  elif selected $config TOOLCHAIN_CODESOURCERY_201203; then
+    if [[ ${toolchain[prefix]} = "arm-none-eabi-" ]]; then
+      toolchain[name]="CodeSourcery ARM EABI 2012.03"
+      toolchain[dir]="arm-2012.03"
+      toolchain[tar]="arm-2012.03-56-arm-none-eabi-i686-pc-linux-gnu.tar.bz2"
+      toolchain[url]="https://sourcery.mentor.com/GNUToolchain/package10385/public/arm-none-eabi"
+      toolchain[hash]="f2fcb35a9e09b0f96e058a0176c80444"
+    fi
+  elif selected "$config" TOOLCHAIN_CODESOURCERY_201209; then
+    if [[ ${toolchain[prefix]} = "arm-none-eabi-" ]]; then
+      toolchain[name]="CodeSourcery ARM EABI 2012.09"
+      toolchain[dir]="arm-2012.09"
+      toolchain[tar]="arm-2012.09-63-arm-none-eabi-i686-pc-linux-gnu.tar.bz2"
+      toolchain[url]="https://sourcery.mentor.com/GNUToolchain/package10926/public/arm-none-eabi"
+      toolchain[hash]="d094880c6ac3aea16d4bfb88077186f7"
+    fi
+  fi
+  toolchain[arch]="$(echo ${t[prefix]%%-*} | tr [a-z] [A-Z])"
+}
+
+prepare_toolchain() {
+  local gcc
+  local tarball
+
+  get_toolchain "$1"
+
+  gcc="$_DT/build-tools/${toolchain[dir]}/bin/${toolchain[prefix]}gcc"
+  if [[ -x "$gcc" ]]; then
+    return
+  fi
+
+  if [[ -z ${toolchain[tar]} ]]; then
+    echo "Please setup your toolchain manually. GCC is expected to exist" >&2
+    echo "here: $gcc" >&2
+    exit 1
+  fi
+
+  tarball="$_DT/downloads/${toolchain[tar]}"
+  if [[ ! -f $tarball ]]; then
+    if [[ -z ${toolchain[url]} ]]; then
+      echo "Please place ${toolchain[tar]} in $_DT/downloads to continue." >&2
+      exit 1
+    fi
+
+    mkdir -p "$_DT/downloads"
+    download "${toolchain[name]}" "${toolchain[url]}" "$tarball"
+  fi
+
+  if [[ ! -z ${toolchain[hash]} ]]; then
+    local len
+    local prog
+    local hash
+    task_begin "Hash checking ${toolchain[name]}"
+    len=${#toolchain[hash]}
+    if [[ $len -eq 32 ]]; then
+      prog=md5sum
+    elif [[ $len -eq 40 ]]; then
+      prog=sha1sum
+    else
+      task_fail "Cannot determine hash type"
+    fi
+    hash=$($prog "$tarball" | cut -d' ' -f1)
+    if [[ $hash != ${toolchain[hash]} ]]; then
+      task_fail "Hash mismatch for ${toolchain[tar]}"
+    fi
+    task_end
+  fi
+
+  task_begin "Extracting ${toolchain[name]}"
+  try tar xaf "$tarball" -C "$_DT/build-tools"
+  if [[ ! -x $gcc ]]; then
+    task_fail "Something went wrong, perhaps you should report this."
+  fi
+  task_end
+}
+

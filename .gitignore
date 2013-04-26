@@ -1,5 +1,8 @@
 .config
 .config.old
-log.txt
-tarballs/
-tools/
+bin/kconfig-*
+downloads/
+build-tools/*
+!build-tools/kconfig
+profiles/*
+!profiles/*_default

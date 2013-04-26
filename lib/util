@@ -1,0 +1,19 @@
+#!/bin/bash
+
+source $_DT/lib/include
+source $_DT/lib/task
+
+download() {
+  task_begin "Downloading $1"
+  if [[ $DTDEBUG -eq 1 ]]; then
+    local cmd=(wget "$2" -O "$3")
+    echo "\$ ${cmd[@]}" >&2
+    "${cmd[@]}" || task_fail
+  else
+    local cmd=(wget --progress=dot "$2" -O "$3")
+    "${cmd[@]}" 2>&1 | grep --line-buffered "%" | sed -u -e "s,\.,,g" | \
+      awk '{printf("%-4s\b\b\b\b", $2); fflush()}' >&2 || task_fail
+  fi
+  task_end
+}
+

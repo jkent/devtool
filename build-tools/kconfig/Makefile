@@ -25,6 +25,14 @@ hconf.c: hconf.gperf
 lxdialog.a: lxdialog/*.c lxdialog/*.h
 	@make -e -C lxdialog
 
+.PHONY: install
+install: all
+	if [ -d "$(_DT)/bin" ]; then \
+	  for f in conf mconf merge tweak; do \
+	    cp $$f $(_DT)/bin/kconfig-$$f; \
+          done \
+	fi
+
 .PHONY: clean
 clean:
 	rm -f conf mconf tweak *.o *.a yconf.c hconf.c lconf.c
