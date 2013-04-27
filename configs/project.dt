@@ -4,9 +4,17 @@ config _DT
     string
     option env="_DT"
 
+config _DT_AUTOGEN
+    string
+    option env="_DT_AUTOGEN"
+
 config _PROJ
     string
     option env="_PROJ"
 
+config PROJECT
+    bool
+
+source "$_DT_AUTOGEN"
 source "$_PROJ/project.dt"
 

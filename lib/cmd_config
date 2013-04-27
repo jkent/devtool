@@ -39,6 +39,7 @@ copy_profile() {
 
 config_profile() {
   local config
+
   if [[ $1 == *_default ]]; then
     echo "not allowed"
     exit 1
@@ -50,6 +51,8 @@ config_profile() {
 }
 
 config_project() {
+  local project
+
   project=$(find_project)
   if [[ -z $project ]]; then
     echo "no project found"
@@ -58,10 +61,51 @@ config_project() {
 
   if [[ ! -f $project/project.dt ]]; then
     echo "no configuration for project"
-    exit 1
+    exit
   fi
 
-  _PROJ="$project" mconf "$project/.config" "$_DT/configs/project.dt"
+  local autogen
+  autogen=$(mktemp)
+
+  local choice="choice\n\tprompt \"Profile\"\n"
+  local presets
+  local profile
+  for profile in $_DT/profiles/*; do
+    case "$profile" in
+      *.old) continue;;
+      *_default)
+        if [[ -f ${profile%_default} ]]; then
+          continue
+        fi
+        ;&
+      *)
+        local profile_name=${profile##*/}
+        choice="${choice}config PROFILE_$profile_name\n"
+        choice="${choice}\tbool \"${profile_name%_default}\"\n"
+
+        presets="${presets}if PROFILE_$profile_name\n"
+        for prefix in ARCH PLAT DEVICE TOOLCHAIN; do
+          local selection=$(choice $profile $prefix)
+          if [[ -z $selection ]]; then continue; fi
+          presets="${presets}config ${prefix}_${selection}\n"
+          presets="${presets}\tbool\n"
+          presets="${presets}\tdefault y\n"
+        done
+        presets="${presets}endif\n\n"
+        ;;
+    esac
+  done
+  choice="${choice}endchoice\n"
+
+  echo -e "$choice" >> $autogen
+  echo -e "$presets" >> $autogen
+
+  _PROJ="$project" _DT_AUTOGEN="$autogen" \
+  mconf "$project/.config" "$_DT/configs/project.dt"
+
+  #less $autogen
+
+  rm $autogen
 }
 
 if [[ $help ]]; then

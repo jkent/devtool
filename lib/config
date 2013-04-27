@@ -19,7 +19,7 @@ profile_config() {
       echo "no configuration for profile" >&2
       exit 1
     fi
-    cp "$_DT/profiles/${1}_default" "$_DT/profiles/$1"
+    cp "$_DT/profiles/$1_default" "$_DT/profiles/$1"
   fi
   echo -n "$_DT/profiles/$1"
 }
@@ -41,3 +41,12 @@ selected() {
   fi
 }
 
+choice() {
+  prepare_kconfig
+  local re="^CONFIG_$2_(.+)=y$"
+  local choice=$(grep -E "$re" $1 | sed -r "s/$re/\1/")
+  if [[ -z $choice ]]; then
+    return 1
+  fi
+  echo $choice
+}
