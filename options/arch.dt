@@ -6,7 +6,7 @@ config ARCH_ARM
 endchoice
 
 if ARCH_ARM
-source "$_DT/configs/arch-arm.dt"
+source "$_DT/options/arch-arm.dt"
 endif
 
 choice

@@ -1,4 +1,9 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# Devtool configuration
+#
 CONFIG_ARCH_ARM=y
+# CONFIG_PLAT_EXYNOS3 is not set
 CONFIG_PLAT_POLLUX=y
 # CONFIG_DEVICE_DIDJ is not set
 # CONFIG_DEVICE_NC600 is not set

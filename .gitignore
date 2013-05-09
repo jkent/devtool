@@ -4,3 +4,4 @@ build-tools/*
 !build-tools/kconfig
 profiles/*
 !profiles/*_default
+*.pyc

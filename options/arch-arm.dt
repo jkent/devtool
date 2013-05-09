@@ -1,7 +1,9 @@
 choice
 	prompt "Platform"
+config PLAT_EXYNOS3
+	bool "Samsung Exynos3 (S5PC110)"
 config PLAT_POLLUX
-	bool "LF1000/POLLUX"
+	bool "CoreLogic Pollux (LF1000/VR3520F)"
 endchoice
 
 choice
@@ -15,5 +17,8 @@ config DEVICE_NC600
 config DEVICE_EGOA732
 	depends on PLAT_POLLUX
 	bool "Augen e-Go A732"
+config DEVICE_MINI210S
+	depends on PLAT_EXYNOS3
+	bool "FriendlyARM Mini210s"
 endchoice
 

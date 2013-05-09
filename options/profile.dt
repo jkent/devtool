@@ -4,5 +4,5 @@ config _DT
     string
     option env="_DT"
 
-source "$_DT/configs/arch.dt"
+source "$_DT/options/arch.dt"
 

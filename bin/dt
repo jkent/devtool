@@ -1,36 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env python
+# -*- utf-8 -*-
+# vim: set ts=4 et
 
-_DT=${_DT-$(cd ${0%/*}/.. && pwd)}
-export _DT
+import sys
 
-usage() {
-  echo "usage: dt <command> [<args>]"
-  echo
-  echo "command list:"
-  local cmd_files=($_DT/lib/cmd_*)
-  local cmds=("${cmd_files[@]##*/cmd_}" help)
-  readarray -t cmds < <({ for a in "${cmds[@]}"; do echo "$a"; done } | sort)
-  for cmd in "${cmds[@]}"; do
-    echo "   $cmd"
-  done
-  echo
-  echo "See 'dt help <command>' for more information on a specific command."
-  exit 1
-}
+if __name__ != '__main__':
+    print "this script is not meant to be imported"
+    sys.exit(1)
 
-cmd=$1
-shift
+import os
 
-if [[ -f $_DT/lib/cmd_$cmd ]]; then
-  source $_DT/lib/cmd_$cmd
-elif [[ $cmd == help ]] && [ -n $# ]; then
-  cmd=$1
-  if [[ -f $_DT/lib/cmd_$cmd ]]; then
-    help=1 source $_DT/lib/cmd_$cmd
-  else
-    usage
-  fi
-else
-  usage
-fi
+devtool_root = os.path.abspath(os.path.join(
+        os.path.dirname(os.path.realpath(sys.argv[0])), '..'))
+devtool_lib = os.path.join(devtool_root, 'lib')    
+sys.path.insert(1, devtool_lib)
+
+import devtool
+devtool.main(devtool_root)
 

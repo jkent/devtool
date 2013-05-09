@@ -8,13 +8,13 @@ config _DT_AUTOGEN
     string
     option env="_DT_AUTOGEN"
 
-config _PROJ
+config _DT_PROJECT
     string
-    option env="_PROJ"
+    option env="_DT_PROJECT"
 
 config PROJECT
     bool
 
 source "$_DT_AUTOGEN"
-source "$_PROJ/project.dt"
+source "$_DT_PROJECT/project.dt"
 
