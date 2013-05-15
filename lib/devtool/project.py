@@ -53,12 +53,8 @@ def get_deps(project_dir):
             if not in_section:
                 continue
 
-            if keyword == 'config':
-                break
-
             if keyword != 'depends on':
-                print 'unexpected keyword in PROJECT config section'
-                sys.exit(1)
+                break
 
             deps.append('(%s)' % args)
     
@@ -149,11 +145,11 @@ def build_autogen(project_dir):
         check_deps = parse_deps(deps, values)
 
     profile_choice  = 'choice\n'
-    profile_choice += '\tprompt "Profile"\n'
+    profile_choice += '\tprompt "Device profile"\n'
     presets = ''
 
     if not profiles:
-        print "no profiles configured"
+        print "no device profiles configured"
         sys.exit(1)
 
     for profile in profiles:
@@ -206,12 +202,13 @@ def edit_config(path=None):
 
     autogen = build_autogen(project_dir)
     if not autogen:
-        print "no profiles that meet project dependencies"
+        print "no device profiles meet project dependencies"
         sys.exit(1)
 
     os.environ['_DT_AUTOGEN'] = autogen
     options = os.path.join(devtool.root_dir, 'options', 'project.dt')
     settings = os.path.join(project_dir, '.config')
     kconfig.edit(options, settings)
+    kconfig.update_project(options, settings)
     os.remove(autogen)
 

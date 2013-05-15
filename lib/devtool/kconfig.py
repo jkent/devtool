@@ -80,3 +80,15 @@ def get_values(settings, values):
                     value = False
                 values[m.group(1)] = value
 
+def update_project(options, settings):
+    if not os.environ.get('_DT_PROJECT', None):
+        return
+    check()
+    env = dict(os.environ)
+    env['KCONFIG_CONFIG'] = settings
+    include = os.path.join(env['_DT_PROJECT'], 'include')
+    env['KCONFIG_AUTOHEADER'] = os.path.join(include, 'config.h')
+    env['KCONFIG_AUTOCONFIG'] = os.path.join(include, 'auto.conf')
+    executable = os.path.join(devtool.bin_dir, 'kconfig-conf')
+    run(executable, '--silentoldconfig', options, env=env)
+

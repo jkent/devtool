@@ -4,5 +4,35 @@ config _DT
     string
     option env="_DT"
 
-source "$_DT/options/arch.dt"
+choice
+	prompt "Target architecture"
+	default ARCH_ARM
+config ARCH_ARM
+	bool "ARM"
+endchoice
+
+if ARCH_ARM
+  source "$_DT/options/arm.dt"
+endif
+
+choice
+	prompt "Toolchain"
+	default TOOLCHAIN_CODESOURCERY_201203
+config TOOLCHAIN_CODESOURCERY_201203
+	bool "CodeSourcery 2012.03"
+	depends on ARCH_ARM
+config TOOLCHAIN_CODESOURCERY_201209
+	bool "CodeSourcery 2012.09"
+	depends on ARCH_ARM
+config TOOLCHAIN_USER_DEFINED
+	bool "User defined"
+endchoice
+
+config TOOLCHAIN_PATH
+	string "Toolchain path"
+        depends on TOOLCHAIN_USER_DEFINED
+
+config TOOLCHAIN_PREFIX
+	string "Toolchain prefix"
+	depends on TOOLCHAIN_USER_DEFINED
 
