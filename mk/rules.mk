@@ -109,7 +109,7 @@ $(OBJDIR)/%.o: $(_DT_PROJECT)/%.c
 $(OBJDIR)/%: $(_DT_PROJECT)/%.in
 	$(D) "   CPP      $(subst $(_DT_PROJECT)/,,$<)"
 	@mkdir -p $(@D)
-	$(Q)$(CPP) -P -MMD -MP -MF $@.d -MQ $@ -x c $(INCLUDE) -o $@ $<
+	$(Q)$(CPP) -P -MMD -MP -MF $@.d -MQ $@ -x c -DOBJDIR=$(OBJDIR) $(INCLUDE) -o $@ $<
 
 .PHONY: clean
 clean:
