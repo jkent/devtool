@@ -17,12 +17,12 @@ endif
 
 choice
 	prompt "Toolchain"
-	default TOOLCHAIN_CODESOURCERY_201203
-config TOOLCHAIN_CODESOURCERY_201203
-	bool "CodeSourcery 2012.03"
+	default TOOLCHAIN_LINARO_2013Q1
+config TOOLCHAIN_LINARO_2013Q1
+	bool "Linaro ARM Embedded 2013Q1"
 	depends on ARCH_ARM
-config TOOLCHAIN_CODESOURCERY_201209
-	bool "CodeSourcery 2012.09"
+config TOOLCHAIN_CODESOURCERY_201203
+	bool "CodeSourcery ARM EABI 2012.03"
 	depends on ARCH_ARM
 config TOOLCHAIN_USER_DEFINED
 	bool "User defined"

@@ -15,11 +15,11 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-cflags-y += -mlittle-endian -msoft-float
+cflags-y += -mlittle-endian -msoft-float -nostartfiles
 cflags-$(CONFIG_CPU_ARM926T) += -mtune=arm9tdmi -march=armv5te
 
 ifdef CONFIG_ARCH_ARM_THUMB
-  cflags-y += -mthumb
+  cflags-y += -mthumb -mthumb-interwork
 endif
 
 $(basename $(target)).bin: $(basename $(target)).elf

@@ -94,7 +94,7 @@ deps:
 
 $(basename $(target)).elf: $(OBJDIR)/$(ld_script) $(objs)
 	$(D) "   LD       $(subst $(OBJDIR)/,,$@)"
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -T $^ -o $@
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -T $^ $(LIBS) -o $@
 
 $(OBJDIR)/%.o: $(_DT_PROJECT)/%.S
 	$(D) "   AS       $(subst $(_DT_PROJECT)/,,$<)"

@@ -1,3 +1,9 @@
+config HAVE_NAND
+	bool
+
+config HAVE_NOR
+	bool
+
 config CPU_ARM926T
 	bool
 
@@ -19,14 +25,18 @@ choice
 config DEVICE_DIDJ
 	bool "LeapFrog Didj"
 	depends on PLAT_POLLUX
+	select HAVE_NAND
 config DEVICE_NC600
 	bool "NC600"
 	depends on PLAT_POLLUX
+	select HAVE_NAND
 config DEVICE_EGOA732
 	bool "Augen e-Go A732"
 	depends on PLAT_POLLUX
+	select HAVE_NAND
 config DEVICE_MINI210S
 	bool "FriendlyARM Mini210s"
 	depends on PLAT_EXYNOS3
+	select HAVE_NAND
 endchoice
 

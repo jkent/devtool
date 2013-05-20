@@ -14,6 +14,17 @@ from util import download, check_md5, check_sha1, extract
 build_tools_dir = os.path.join(devtool.root_dir, 'build-tools')
 
 toolchains = {
+    'LINARO_2013Q1': {
+        'name': 'Linaro ARM Embedded 2013q1',
+        'arch': 'ARM',
+        'prefix': 'arm-none-eabi-',
+        'dir': 'gcc-arm-none-eabi-4_7-2013q1',
+        'linux': {
+            'tarball': 'gcc-arm-none-eabi-4_7-2013q1-20130313-linux.tar.bz2',
+            'url': 'https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q1-update/+download',
+            'md5': 'bcf845e5cd0608a0d56825d8763cba77',
+        },
+    },
     'CODESOURCERY_201203': {
         'name': 'CodeSourcery ARM EABI 2012.03',
         'arch': 'ARM',
@@ -25,18 +36,7 @@ toolchains = {
             'md5': 'f2fcb35a9e09b0f96e058a0176c80444',
         },
     },
-    'CODESOURCERY_201209': {
-        'name': 'CodeSourcery ARM EABI 2012.09',
-        'arch': 'ARM',
-        'prefix': 'arm-none-eabi-',
-        'dir': 'arm-2012.09',
-        'linux': {
-            'tarball': 'arm-2012.09-63-arm-none-eabi-i686-pc-linux-gnu.tar.bz2',
-            'url': 'https://sourcery.mentor.com/GNUToolchain/package10926/public/arm-none-eabi',
-            'md5': 'd094880c6ac3aea16d4bfb88077186f7',
-        },
-    }
-}            
+}        
 
 def info(settings):
     key = kconfig.choice(settings, 'TOOLCHAIN')
