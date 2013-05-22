@@ -22,10 +22,11 @@ ifdef CONFIG_ARCH_ARM_THUMB
   cflags-y += -mthumb -mthumb-interwork
 endif
 
-$(basename $(target)).bin: $(basename $(target)).elf
-	$(D) "   OBJDUMP  $(@:.bin=.dis)"
-	$(Q)$(OBJDUMP) -d -m armv5te $< > $(OBJDIR)/$(@:.bin=.dis)
-	$(D) "   OBJCOPY  $@"
+$(BUILD)/$(basename $(target)).bin: $(BUILD)/$(basename $(target)).elf
+	@mkdir -p $(@D)
+	$(D) "   OBJDUMP  $<"
+	$(Q)$(OBJDUMP) -d -m armv5te $< > $(@:.bin=.dis)
+	$(D) "   OBJCOPY  $<"
 	$(Q)$(OBJCOPY) -S -I elf32-littlearm -O binary $< $@
 	@echo
 	@$(SIZE) --target=binary $@
