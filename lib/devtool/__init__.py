@@ -31,6 +31,7 @@ def main(rootdir):
     del sys.argv[0]
     module.main()
 
+
 def usage(exit=False):
     from textwrap import dedent
 
@@ -40,8 +41,9 @@ def usage(exit=False):
         command list:%s
 
         See 'dt help <command>' for more information on a specific command."""
-
-    command_list = ''.join('\n           %s' % s for s in command.modules)    
+   
+    commands = (s for s in command.modules if not s.startswith('_'))
+    command_list = ''.join('\n           %s' % s for s in commands)
     print dedent(usage % command_list)
 
     if exit:

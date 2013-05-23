@@ -20,14 +20,14 @@ def find(path=None):
             if os.path.isfile(os.path.join(path, 'project.dt')):
                 project_dir = path
     else:
-        path = os.path.abspath(path)
         if os.path.isfile(os.path.join(path, 'project.dt')):
             project_dir = path
 
-    if project_dir:
-        os.environ['_DT_PROJECT'] = project_dir
+    if not project_dir:
+        return None
 
-    return project_dir
+    return os.path.relpath(project_dir)
+
 
 def get_deps(project_dir):
     deps = []
@@ -58,7 +58,8 @@ def get_deps(project_dir):
 
             deps.append('(%s)' % args)
     
-    return '&&'.join(deps)
+    return ' && '.join(deps)
+
 
 # Shunting-yard algorithm
 def parse_deps(expr, values):
@@ -137,78 +138,98 @@ def parse_deps(expr, values):
 
     return output[0]
 
-def build_autogen(project_dir):
-    values = {}
-    
-    deps = get_deps(project_dir)
-    if deps:
-        check_deps = parse_deps(deps, values)
 
-    profile_choice  = 'choice\n'
-    profile_choice += '\tprompt "Device profile"\n'
-    presets = ''
+def build_autogen(project, profile, profile_dict):
+    autogen = 'config PROFILE_%s\n' % profile.upper()
+    autogen += '\tbool\n'
+    autogen += '\tdefault y\n'
 
-    if not profiles:
-        print "no device profiles configured"
-        sys.exit(1)
-
-    for profile in profiles:
-        profile_file = os.path.join(profiles_dir, profile)
-
-        kconfig.get_values(profile_file, values)
-        if deps and not check_deps():
+    for key, value in profile_dict.items():
+        if value == None:
             continue
 
-        profile_choice += 'config PROFILE_%s\n' % profile
-        profile_choice += '\tbool "%s"\n' % profile
-
-        presets += 'if PROFILE_%s\n' % profile
-        for key in values:
-            value = values[key]
-            if value != None:
-                presets += 'config %s\n' % key
-                if type(value) is bool:
-                    presets += '\tbool\n'
-                    if value:
-                        presets += '\tdefault y\n'
-                    else:
-                        presets += '\tdefault n\n'
-                elif type(value) is int:
-                    presets += '\tbool\n'
-                    presets += '\tdefault %s\n' % str(value)
-                else:
-                    presets += '\tstring\n'
-                    presets += '\tdefault "%s"\n' % value
-        presets += 'endif\n'
-
-    profile_choice += 'endchoice\n'
-
-    if not presets:
-        return None
+        autogen += 'config %s\n' % key
+        if type(value) is bool:
+            autogen += '\tbool\n'
+            if value:
+                autogen += '\tdefault y\n'
+            else:
+                autogen += '\tdefault n\n'
+        elif type(value) is int:
+            autogen += '\tbool\n'
+            autogen += '\tdefault %s\n' % str(value)
+        else:
+            autogen += '\tstring\n'
+            autogen += '\tdefault "%s"\n' % value
 
     f, filename = mkstemp()
     f = os.fdopen(f, 'w')
-    f.write(profile_choice)
-    f.write(presets)
+    f.write(autogen)
     f.close()
 
     return filename
 
-def edit_config(path=None):
+
+def edit_config(profile, path=None):
     project_dir = find(path)
     if not project_dir:
         print "no project found"
         sys.exit(1)
 
-    autogen = build_autogen(project_dir)
-    if not autogen:
-        print "no device profiles meet project dependencies"
+    if profile not in profiles:
+        print "no profile '%s'" % profile
         sys.exit(1)
 
-    os.environ['_DT_AUTOGEN'] = autogen
+    profile_dict = {}
+    if not check(profile, project_dir, profile_dict):
+        sys.exit(1)
+
+    autogen = build_autogen(project_dir, profile, profile_dict)
+    env = dict(os.environ)
+    env['_DT_PROJECT'] = os.path.abspath(project_dir)
+    env['_DT_PROFILE'] = profile
+    env['_DT_AUTOGEN'] = autogen
     options = os.path.join(devtool.root_dir, 'options', 'project.dt')
-    settings = os.path.join(project_dir, '.config')
-    kconfig.edit(options, settings)
-    kconfig.update_project(options, settings)
+    config_dir = os.path.join(project_dir, 'build')
+    config = os.path.join(config_dir, '%s.cfg' % profile)
+    if kconfig.edit(options, config, env):
+        update(profile, project_dir, autogen)
     os.remove(autogen)
+
+
+def check(profile, project_dir, profile_dict={}):
+    deps_expr = get_deps(project_dir)
+    check_deps = parse_deps(deps_expr, profile_dict)
+    profile_file = os.path.join(profiles_dir, profile)
+    kconfig.get_values(profile_file, profile_dict)
+    if not check_deps():
+        sys.stderr.write("profile does not meet project dependencies:\n")
+        sys.stderr.write("%s\n" % deps_expr)
+        return False
+    return True
+
+
+def update(profile, project_dir, autogen=None):
+    make_autogen = autogen == None
+    if make_autogen:
+        profile_dict = {}
+        profile_file = os.path.join(profiles_dir, profile)
+        kconfig.get_values(profile_file, profile_dict)
+        autogen = build_autogen(project_dir, profile, profile_dict)
+    env = dict(os.environ)
+    env['_DT_PROJECT'] = os.path.abspath(project_dir)
+    env['_DT_AUTOGEN'] = autogen
+    options = os.path.join(devtool.root_dir, 'options', 'project.dt')
+    config_dir = os.path.join(project_dir, 'build')
+    config = os.path.join(config_dir, '%s.cfg' % profile)
+    include_dir = os.path.join(config_dir, profile)
+    if not os.path.exists(include_dir):
+        os.makedirs(include_dir)
+    env['KCONFIG_AUTOHEADER'] = os.path.join(include_dir, 'config.h')
+    env['KCONFIG_AUTOCONFIG'] = os.path.join(include_dir, 'auto.mk')
+    kconfig.conf(options, config, env)
+    if make_autogen:
+        os.remove(autogen)
+
+    return True    
 

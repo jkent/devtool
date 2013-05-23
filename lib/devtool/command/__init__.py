@@ -9,7 +9,7 @@ modules = []
 files = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
 for path in files:
     filename = os.path.basename(path)
-    if not filename.startswith('_'):
+    if not filename.startswith('__'):
         root, ext = os.path.splitext(filename)
         modules.append(root)
 del files

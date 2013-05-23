@@ -10,10 +10,12 @@ from devtool.task import task
 
 config_dir = os.path.join(devtool.root_dir, 'configs')
 
+
 def check():
     mconf = os.path.join(devtool.bin_dir, 'kconfig-mconf')
     if not os.path.exists(mconf):
         setup()
+
 
 @task('Setting up kconfig')
 def setup():
@@ -38,14 +40,41 @@ def setup():
     build()
     install()
 
-def edit(options, settings):
-    check()
-    env = dict(os.environ)
-    env['KCONFIG_CONFIG'] = settings
-    run('%s/kconfig-mconf' % devtool.bin_dir, options, env=env)
 
-def value(settings, option):
-    with open(settings, 'r') as f:
+def conf(options, config, env=None):
+    if env == None:
+        env = dict(os.environ)
+    env['KCONFIG_CONFIG'] = config
+    executable = os.path.join(devtool.bin_dir, 'kconfig-conf')
+    run(executable, '--silentoldconfig', options, env=env)
+
+
+def edit(options, config, env=None):
+    check()
+    if env == None:
+        env = dict(os.environ)
+
+    config_dir = os.path.dirname(os.path.abspath(config))
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+
+    mtime = 0
+    if os.path.exists(config):
+        mtime = os.path.getmtime(config)
+    env['KCONFIG_CONFIG'] = config
+    executable = os.path.join(devtool.bin_dir, 'kconfig-mconf')
+    run(executable, options, env=env)
+    if os.path.exists(config):
+        mtime = os.path.getmtime(config) - mtime
+
+    if mtime:
+        return True
+
+    return False
+
+
+def value(config, option):
+    with open(config, 'r') as f:
         for line in f.readlines():
             if line.startswith('# CONFIG_%s is not set' % option):
                 return False
@@ -57,17 +86,19 @@ def value(settings, option):
                 return value
     return None
 
-def choice(settings, option):
-    with open(settings, 'r') as f:
+
+def choice(config, option):
+    with open(config, 'r') as f:
         for line in f.readlines():
             m = re.match(r'^CONFIG_%s_(.*)=y$' % option, line)
             if m:
                 return m.group(1)
     return None
 
-def get_values(settings, values):
+
+def get_values(config, values):
     values.clear()
-    with open(settings, 'r') as f:
+    with open(config, 'r') as f:
         for line in f.readlines():
             m = re.match(r'^CONFIG_(.+)="?(.*?)"?$', line)
             if m:
@@ -79,16 +110,4 @@ def get_values(settings, values):
                 elif value == 'n':
                     value = False
                 values[m.group(1)] = value
-
-def update_project(options, settings):
-    if not os.environ.get('_DT_PROJECT', None):
-        return
-    check()
-    env = dict(os.environ)
-    env['KCONFIG_CONFIG'] = settings
-    include = os.path.join(env['_DT_PROJECT'], 'include')
-    env['KCONFIG_AUTOHEADER'] = os.path.join(include, 'config.h')
-    env['KCONFIG_AUTOCONFIG'] = os.path.join(include, 'auto.conf')
-    executable = os.path.join(devtool.bin_dir, 'kconfig-conf')
-    run(executable, '--silentoldconfig', options, env=env)
 

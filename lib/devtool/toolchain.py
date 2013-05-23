@@ -53,7 +53,7 @@ def info(settings):
         toolchain.update(toolchains[key][plat])
         return toolchain
 
-def setup(settings):
+def setup(settings, env):
     toolchain = info(settings)
     if not toolchain:
         print "no toolchain selected"
@@ -102,8 +102,7 @@ def setup(settings):
     if not installed():
         install()
 
-
-    os.environ['CROSS_COMPILE'] = toolchain['prefix']
-    os.environ['ARCH'] = toolchain['arch']
-    os.environ['PATH'] = os.pathsep.join((toolchain_bin, os.environ['PATH']))
+    env['CROSS_COMPILE'] = toolchain['prefix']
+    env['ARCH'] = toolchain['arch']
+    env['PATH'] = os.pathsep.join((toolchain_bin, env.get('PATH', os.environ['PATH'])))
 

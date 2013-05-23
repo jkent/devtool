@@ -4,6 +4,10 @@ config _DT
     string
     option env="_DT"
 
+config _DT_PROFILE
+    string
+    option env="_DT_PROFILE"
+
 config _DT_AUTOGEN
     string
     option env="_DT_AUTOGEN"

@@ -4,7 +4,8 @@
 import os
 import sys
 
-import devtool.project as project
+from devtool.process import run
+from devtool.profile import profiles_dir, profiles
 
 
 def main():
@@ -18,7 +19,14 @@ def main():
     if not profile:
         usage(True)
 
-    project.edit_config(profile)
+    if profile not in profiles:
+        print "no profile '%s'" % profile
+        sys.exit(1)
+
+    env = dict(os.environ)
+    env['_DT_PROFILE'] = profile
+    run('make', env=env)
+
 
 def usage(exit=False):
     from textwrap import dedent
@@ -26,10 +34,10 @@ def usage(exit=False):
     profile = os.environ.get('_DT_PROFILE', None)
     if profile:
         usage = """\
-            usage: dt config [<profile>]"""
+            usage: dt build [<profile>]"""
     else:
         usage = """\
-            usage: dt config <profile>"""
+            usage: dt build <profile>"""
 
     print dedent(usage)
 

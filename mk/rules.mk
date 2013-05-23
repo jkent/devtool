@@ -15,9 +15,23 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# Default rule
+# default rule
 .PHONY: all
 all:
+
+BASEDIR ?= $(patsubst %/,%,$(dir $(firstword $(MAKEFILE_LIST))))
+BUILD := $(BASEDIR)/build/$(_DT_PROFILE)
+
+# prepare build
+define nl
+
+
+endef
+$(eval $(subst #,$(nl),$(shell dt _prepmk $(BASEDIR)|tr '\n' '#')))
+
+ifndef _DT_PROFILE
+$(error cannot continue)
+endif
 
 AS      := $(CROSS_COMPILE)as
 LD      := $(CROSS_COMPILE)ld
@@ -30,19 +44,11 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
 OBJDUMP := $(CROSS_COMPILE)objdump
 SIZE    := $(CROSS_COMPILE)size
 
-BASEDIR ?= $(patsubst %/,%,$(dir $(firstword $(MAKEFILE_LIST))))
-VPATH := $(BASEDIR)
-ifeq ($(wildcard ${CURDIR}/project.dt),)
-  BUILD ?= .
-else
-  BUILD ?= build
-endif  
-
 CFLAGS   = -std=gnu99 -Wall -fms-extensions $(cflags-y)
 ASFLAGS := -Wa,--defsym,_entry=0
 LDFLAGS := -Wl,-M,-Map,$(BUILD)/$(basename $(target)).map
 LIBS     = -lgcc $(libs-y)
-INCLUDE  = $(addprefix -I$(BASEDIR)/,include $(includes))
+INCLUDE  = --include $(BUILD)/config.h $(addprefix -I$(BASEDIR)/,include $(includes))
 
 ifdef CONFIG_DEBUG
   cflags-y += -O0 -g3 -DDEBUG
@@ -58,7 +64,7 @@ else
   Q := @
 endif
 
-include $(BASEDIR)/include/auto.conf
+include $(BUILD)/auto.mk
 
 ifdef CONFIG_ARCH_ARM
   include $(_DT)/mk/arm.mk
@@ -84,15 +90,6 @@ $(foreach dir,$(srcdirs),\
 	$(eval $(call collect_vars,$(dir)))\
 )
 
-.PHONY: test
-test:
-	@echo BASEDIR: $(BASEDIR)
-	@echo BUILD: $(BUILD)
-	@echo INCLUDE: $(INCLUDE)
-	@echo srcdirs: $(srcdirs)
-	@echo dirs: $(dirs)
-	@echo objs: $(objs)
-
 all: $(BUILD)/$(target)
 	@$(MAKE) -s -f $(firstword $(MAKEFILE_LIST)) deps
 
@@ -113,35 +110,30 @@ $(BUILD)/$(basename $(target)).elf: $(BUILD)/$(ld_script) $(objs)
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -T $^ $(LIBS) -o $@
 
 $(BUILD)/%.o: $(BASEDIR)/%.S
-$(BUILD)/%.o: %.S
 	@mkdir -p $(@D)
 	$(D) "   AS       $<"
 	$(Q)$(CC) -c -MMD -MP -MF $@.d -MQ $@ $(CFLAGS) $(ASFLAGS) $(INCLUDE) $< -o $@
 
 $(BUILD)/%.o: $(BASEDIR)/%.c
-$(BUILD)/%.o: %.c
 	@mkdir -p $(@D)
 	$(D) "   CC       $<"
 	$(Q)$(CC) -c -MMD -MP -MF $@.d -MQ $@ $(CFLAGS) $(INCLUDE) $< -o $@
 
 $(BUILD)/%: $(BASEDIR)/%.in
-$(BUILD)/%: %.in
 	@mkdir -p $(@D)
 	$(D) "   CPP      $<"
-	$(Q)$(CPP) -P -MMD -MP -MF $@.d -MQ $@ -x c $(if $(BUILD:.%=%),-DBUILD=$(BUILD)) $(INCLUDE) $< -o $@
+	$(Q)$(CPP) -P -MMD -MP -MF $@.d -MQ $@ -x c -DBUILD=$(BUILD:./%=%) $(INCLUDE) $< -o $@
 
 .PHONY: clean
 clean:
-	@if [ -e ${CURDIR}/project.dt ]; then\
-	  rm -rf $(BUILD)/;\
-	else\
-	  rm -rf $(addprefix $(BUILD)/,$(dirs));\
-	  rm -f $(BUILD)/$(ld_script) $(BUILD)/$(ld_script).d;\
-	  rm -f $(objs) $(addsuffix .d,$(objs));\
-	  rm -f $(BUILD)/deps.mk;\
-	  rm -f $(BUILD)/$(basename $(target)).map;\
-	  rm -f $(BUILD)/$(basename $(target)).dis;\
-	  rm -f $(BUILD)/$(basename $(target)).elf;\
-	  rm -f $(BUILD)/$(basename $(target)).bin;\
-	fi
+	@rm -f $(BUILD)/$(ld_script).d
+	@rm -f $(addsuffix .d,$(objs))
+	@rm -f $(BUILD)/deps.mk
+	@rm -f $(BUILD)/$(ld_script)
+	@rm -f $(objs)
+	@rm -rf $(addprefix $(BUILD)/,$(dirs))
+	@rm -f $(BUILD)/$(basename $(target)).map
+	@rm -f $(BUILD)/$(basename $(target)).dis
+	@rm -f $(BUILD)/$(basename $(target)).elf
+	@rm -f $(BUILD)/$(basename $(target)).bin
 

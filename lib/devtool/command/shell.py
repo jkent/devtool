@@ -4,38 +4,36 @@
 import os
 import sys
 
-import devtool
-import devtool.project as project
-import devtool.toolchain as toolchain
 from devtool.process import run
+from devtool.profile import profiles_dir, profiles
 
 
 def main():
-    if len(sys.argv) > 2:
+    if len(sys.argv) != 2:
         usage(True)
 
-    path = sys.argv[1] if len(sys.argv) == 2 else None
-    project_dir = project.find(path)
-
-    if not project_dir:
-        print "could not find project"
+    if os.environ.get('_DT_SHELL', None):
+        print "already in a shell"
+        sys.exit(1)
+ 
+    profile = sys.argv[1]
+    if profile not in profiles:
+        print "no profile '%s'" % profile
         sys.exit(1)
 
-    config_file = os.path.join(project_dir, '.config')
+    profile_file = os.path.join(profiles_dir, profile)
+    env = dict(os.environ)
+    env['_DT_PROFILE'] = profile
+    env['_DT_SHELL'] = "1"
+    env['PS1'] = "\u@\h:\w [dt:${_DT_PROFILE}]\$ "
+    run(os.environ['SHELL'], '--norc', env=env)
 
-    if not os.path.isfile(config_file):
-        print "project is not configured"
-        sys.exit(1)
-
-    toolchain.setup(config_file)
-    os.environ['PS1'] = "\u@\h:\w [dt]\$ "
-    run(os.environ['SHELL'], '--norc')
 
 def usage(exit=False):
     from textwrap import dedent
 
     usage = """\
-        usage: dt shell [<project>]"""
+        usage: dt shell <profile>"""
 
     print dedent(usage)
 
