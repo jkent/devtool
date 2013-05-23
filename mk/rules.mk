@@ -48,7 +48,7 @@ CFLAGS   = -std=gnu99 -Wall -fms-extensions $(cflags-y)
 ASFLAGS := -Wa,--defsym,_entry=0
 LDFLAGS := -Wl,-M,-Map,$(BUILD)/$(basename $(target)).map
 LIBS     = -lgcc $(libs-y)
-INCLUDE  = --include $(BUILD)/config.h $(addprefix -I$(BASEDIR)/,include $(includes))
+INCLUDE  = --include $(BUILD)/config.h $(addprefix -I$(BASEDIR)/,$(BUILD) $(includes))
 
 ifdef CONFIG_DEBUG
   cflags-y += -O0 -g3 -DDEBUG
