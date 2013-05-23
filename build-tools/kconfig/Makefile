@@ -17,10 +17,27 @@ conf.o: conf.c
 mconf.o: mconf.c
 yconf.o: yconf.c hconf.c lconf.c util.c confdata.c expr.c symbol.c menu.c lkc.h expr.h lkc_proto.h list.h
 
+ifeq ($(shell which yacc),)
+yconf.c: yconf.c.dist
+	cp yconf.c.dist yconf.c
+else
 yconf.c: yconf.y
+endif
+
+ifeq ($(shell which lex),)
+lconf.c: lconf.c.dist
+	cp lconf.c.dist lconf.c
+else
 lconf.c: lconf.l
+endif
+
+ifeq ($(shell which gperf),)
+hconf.c: hconf.c.dist
+	cp hconf.c.dist hconf.c
+else
 hconf.c: hconf.gperf
 	gperf -t --output-file $@ -a -C -E -g -k 1,3,$$ -p -t $<
+endif
 
 lxdialog.a: lxdialog/*.c lxdialog/*.h
 	@make -e -C lxdialog
@@ -37,4 +54,10 @@ install: all
 clean:
 	rm -f conf mconf tweak *.o *.a yconf.c hconf.c lconf.c
 	@make -e -C lxdialog clean
+
+.PHONY: dist
+dist: yconf.c lconf.c hconf.c
+	mv yconf.c yconf.c.dist
+	mv lconf.c lconf.c.dist
+	mv hconf.c hconf.c.dist
 
