@@ -218,6 +218,7 @@ def update(profile, project_dir, autogen=None):
         autogen = build_autogen(project_dir, profile, profile_dict)
     env = dict(os.environ)
     env['_DT_PROJECT'] = os.path.abspath(project_dir)
+    env['_DT_PROFILE'] = profile
     env['_DT_AUTOGEN'] = autogen
     options = os.path.join(devtool.root_dir, 'options', 'project.dt')
     config_dir = os.path.join(project_dir, 'build')

@@ -29,5 +29,6 @@ $(BUILD)/$(basename $(target)).bin: $(BUILD)/$(basename $(target)).elf
 	$(D) "   OBJCOPY  $<"
 	$(Q)$(OBJCOPY) -S -I elf32-littlearm -O binary $< $@
 	@echo
+	@$(SIZE) $<
 	@$(SIZE) --target=binary $@
 

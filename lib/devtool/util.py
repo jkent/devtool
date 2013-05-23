@@ -49,7 +49,7 @@ def download(url):
 def check_md5(filepath, md5):
     filename = os.path.basename(filepath)
     
-    @task('Checking MD5 for "%s"' % filename)
+    @task('Checking MD5 for %s' % filename)
     def do():
         f = open(filepath)
         md5hash = hashlib.md5()
