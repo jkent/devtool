@@ -15,6 +15,10 @@ bin_dir = ''
 def main(rootdir):
     global root_dir, bin_dir
 
+    if os.geteuid() == 0:
+        sys.stderr.write("devtool is not meant to be run as root\n")
+        sys.exit(1)
+
     root_dir = rootdir
     bin_dir = os.path.join(root_dir, 'bin')
     
