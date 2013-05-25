@@ -2,6 +2,7 @@
 # vim: set ts=4 et
 
 import os
+import sys
 from shutil import copyfile
 
 import devtool
@@ -12,17 +13,27 @@ profiles_dir = os.path.join(devtool.root_dir, 'profiles')
 profiles = []
 
 
+def valid_name(name):
+    if name.startswith('.'):
+        return False
+
+    if name.endswith('.old'):
+        return False
+
+    return True
+
+
 def rescan():
     global profiles
 
-    for f in os.listdir(profiles_dir):
-        if not os.path.isfile(os.path.join(profiles_dir, f)):
+    for name in os.listdir(profiles_dir):
+        if not os.path.isfile(os.path.join(profiles_dir, name)):
             continue
 
-        if f.endswith('.old'):
+        if not valid_name(name):
             continue
 
-        profiles.append(f)
+        profiles.append(name)
 
     profiles.sort()
 
@@ -30,8 +41,12 @@ rescan()
 
 
 def edit(name):
+    if not valid_name(name):
+        sys.stderr.write("'%s' is not a valid profile name\n" % name)
+        sys.exit(1)
+
     if name not in profiles:
-        sys.stderr.write("no profile '%s'" % name)
+        sys.stderr.write("no profile '%s'\n" % name)
         sys.exit(1)
 
     options = os.path.join(devtool.root_dir, 'options', 'profile.dt')
@@ -40,8 +55,12 @@ def edit(name):
 
 
 def new(name):
+    if not valid_name(name):
+        sys.stderr.write("'%s' is not a valid profile name\n" % name)
+        sys.exit(1)
+
     if name in profiles:
-        sys.stderr.write("already a profile '%s'" % name)
+        sys.stderr.write("already a profile '%s'\n" % name)
         sys.exit(1)
 
     profile = os.path.join(profiles_dir, name)
@@ -50,8 +69,16 @@ def new(name):
     
 
 def copy(src, dst):
+    if not valid_name(src):
+        sys.stderr.write("'%s' is not a valid profile name\n" % src)
+        sys.exit(1)
+
+    if not valid_name(dst):
+        sys.stderr.write("'%s' is not a valid profile name\n" % dst)
+        sys.exit(1)
+
     if src not in profiles:
-        sys.stderr.write("no profile '%s'" % src)
+        sys.stderr.write("no profile '%s'\n" % src)
         sys.exit(1)
 
     src_profile = os.path.join(profiles_dir, src)
@@ -61,8 +88,12 @@ def copy(src, dst):
 
 
 def delete(name):
+    if not valid_name(name):
+        sys.stderr.write("'%s' is not a valid profile name\n" % name)
+        sys.exit(1)
+
     if name not in profiles:
-        sys.stderr.write("no profile '%s'" % name)
+        sys.stderr.write("no profile '%s'\n" % name)
         sys.exit(1)
 
     profile = os.path.join(profiles_dir, name)
